@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find the Paper</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdn.rawgit.com/jasondavies/d3-cloud/v1.2.0/build/d3.layout.cloud.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e7eff6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #0a5785;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .logo img {
+            height: 50px;
+            width: auto;
+        }
+        .title {
+            color: white;
+            margin-left: 10px;
+            font-size: 32px;
+        }
+        .nav {
+            list-style-type: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            border-bottom: 2px double #0a5785;
+        }
+        .nav li {
+            padding: 0 10px;
+        }
+        .nav li a {
+            color: #0a5785;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 20px;
+            display: block;
+        }
+        .nav li a:hover {
+            text-decoration: underline;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+        .dropdown-content a:hover {background-color: #f1f1f1;}
+        .dropdown:hover .dropdown-content {display: block;}
+        .content-box {
+            border: 1px solid #ddd;
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+        }
+        .instructor {
+            border: 2px dashed #333;
+            height: auto;
+            margin-top: 20px;
+            text-align: left;
+            padding: 10px;
+            overflow: auto;
+        }
+        #contactContent {
+            padding: 20px;
+            display: none;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            padding: 20px;
+            text-align: center;
+        }
+        #wordcloud {
+            text-align: center;
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 10px solid lightgray;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <div class="logo">
+            <img src="logo.png" alt="Find the Paper Logo">
+        </div>
+        <h1 class="title">Find the Paper</h1>
+    </div>
+</div>
+
+<ul class="nav">
+    <li><a href="javascript:void(0);" onclick="showContent('home')">Home</a></li>
+    <li class="dropdown">
+        <a href="javascript:void(0)" class="dropbtn">Explore</a>
+        <div class="dropdown-content">
+            <a href="javascript:void(0)" onclick="showChart('heatMap')">Heat Map</a>
+            <a href="javascript:void(0)" onclick="showChart('lineChart')">Line Chart</a>
+            <a href="javascript:void(0)" onclick="showChart('wordCloud')">Word Cloud</a>
+        </div>
+    </li>
+    <li><a href="javascript:void(0);" onclick="showContent('contact')">Contact Us</a></li>
+</ul>
+
+<div id="homeContent" class="content">
+    <div class="content-box">
+        <h2>Heat Map</h2>
+        <div class="instructor">
+            <p>Heatmaps display data through changes in color. When applied to tables, heat maps are suitable for cross-checking multivariate data to detect whether there are any correlations between each other. Here, we use heat maps to explore cooperative relationships between different institutions. By selecting the institutions of concern and setting the closeness ranking of the cooperative relationships, we can obtain heat maps between different institutions.</p>
+            <p>This function obtains scopus data and selects the Affiliations data column for analysis. When the data set is larger, more relationship results can be obtained. Please ensure that the uploaded data set is in CSV format, each piece of data corresponds to an article, and multiple institutions in the same article are separated by semicolons.</p>
+        </div>
+    </div>
+    <div class="content-box">
+        <h2>Line Chart</h2>
+        <div class="instructor">
+            <p>In order for these charts to display the data correctly, the data needs to be uploaded in the correct format. The data should be a CSV file containing annual output data for Anthropology, Archaeology, Sociology and Psychology. Each column should represent a subject, and each row should correspond to a specific year of data. Before uploading, you need to ensure that all data is complete and has no NA values or missing values, as these may affect the accuracy of the chart. If the CSV file contains these incomplete data, they should be cleaned and processed before uploading.</p>
+            <p>After uploading the data, you can see the changes in annual output over time in the four disciplines of anthropology, archaeology, sociology, and psychology, which are distinguished by different colors. Users can select the data series they wish to visualize by checking or unchecking checkboxes on the chart. This interactive feature allows users to explore the data based on their interests.</p>
+        </div>
+    </div>
+    <div class="content-box">
+        <h2>Word Cloud</h2>
+        <div class="instructor">
+            <p>A word cloud visually represents words based on their frequency or importance in the given dataset, with larger words indicating higher frequency. Colors may enhance visual appeal, but don't convey additional meaning. The stop words are excluded. It offer a qualitative overview of the topics or themes and are is used alongside other analytical tools for more in-depth insights.</p>
+            <p>The data needs to be in CSV format containing keywords and their frequency. Make sure there's no missing values, and stopwords needs to be cleaned before uploading.</p>
+        </div>
+    </div>
+</div>
+
+<div id="contactContent" class="content" style="display: none;">
+    <h2>Contact Us</h2>
+    <p>Yating Ke</p>
+    <p>University of North Carolina at Chapel Hill</p>
+    <p>Phone: +1 984-(215)-7804</p>
+    <p>Email: keyating@unc.edu</p>
+    <p>&nbsp;</p>
+    <p>Qi Xue</p>
+    <p>University of North Carolina at Chapel Hill</p>
+    <p>Email: qxue@unc.edu</p>
+    <p>&nbsp;</p>
+    <p>Xiaoyu Gao</p>
+    <p>University of North Carolina at Chapel Hill</p>
+    <p>Email: xgao24@unc.edu</p>
+</div>
+
+<div id="heatMapContainer" class="chart-container" style="display: none;">
+    <input type="file" id="csvFileInput" accept=".csv" onchange="handleFileSelect(event)">
+    <br>
+    <select id="affiliationSelect"></select>
+    <input type="number" id="topXInput" placeholder="Enter number of top affiliations">
+    <button onclick="updateHeatmap()">Update Heatmap</button>
+    <div id="heatmap"></div>
+</div>
+
+<div id="lineChartContainer" class="chart-container" style="display: none;">
+    <input type="file" id="csvFileInputLineChart" accept=".csv" onchange="handleFileSelectLineChart(event)" >
+    <div>
+        <label>
+            <input type="checkbox" class="lineCheckbox" value="Anthropology" onchange="updateChartVisibility()"> Anthropology
+        </label>
+        <label>
+            <input type="checkbox" class="lineCheckbox" value="Archaeology" onchange="updateChartVisibility()"> Archaeology
+        </label>
+        <label>
+            <input type="checkbox" class="lineCheckbox" value="Sociology" onchange="updateChartVisibility()"> Sociology
+        </label>
+        <label>
+            <input type="checkbox" class="lineCheckbox" value="Psychology" onchange="updateChartVisibility()"> Psychology
+        </label>
+    </div>
+    <canvas id="myChart"></canvas>
+</div>
+
+<div id="wordCloudContainer" class="chart-container" style="display: none;">
+    <input type="file" id="csvFileInputWordCloud" accept=".csv" onchange="handleFileSelectWordCloud(event)">
+    <div id="wordcloud"></div>
+</div>
+
+<script>
+    let allAffiliations = [];
+    let heatmapData = [];
+    let chart;
+    function showContent(type) {
+        document.getElementById('homeContent').style.display = 'none';
+        document.getElementById('contactContent').style.display = 'none';
+        document.getElementById('heatMapContainer').style.display = 'none';
+        document.getElementById('lineChartContainer').style.display = 'none';
+        document.getElementById('wordCloudContainer').style.display = 'none';
+
+        if (type === 'home') {
+            document.getElementById('homeContent').style.display = 'block';
+        } else if (type === 'contact') {
+            document.getElementById('contactContent').style.display = 'block';
+        }
+    }
+
+    function showChart(chartType) {
+        document.getElementById('homeContent').style.display = 'none';
+        document.getElementById('contactContent').style.display = 'none';
+        document.getElementById('heatMapContainer').style.display = 'none';
+        document.getElementById('lineChartContainer').style.display = 'none';
+        document.getElementById('wordCloudContainer').style.display = 'none';
+
+        if (chartType === 'heatMap') {
+            document.getElementById('heatMapContainer').style.display = 'block';
+        } else if (chartType === 'lineChart') {
+            document.getElementById('lineChartContainer').style.display = 'block';
+        } else if (chartType === 'wordCloud') {
+            document.getElementById('wordCloudContainer').style.display = 'block';
+        }
+    }
+
+    //heatmap
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        Papa.parse(file, {
+            complete: function(results) {
+                heatmapData = countCoOccurrences(results.data);
+                fillAffiliationSelect(allAffiliations);
+                createHeatmap(heatmapData);
+            },
+            header: true
+        });
+    }
+
+    function fillAffiliationSelect(affiliations) {
+        const select = document.getElementById('affiliationSelect');
+        select.innerHTML = '';
+        affiliations.forEach(affiliation => {
+            const option = document.createElement('option');
+            option.value = affiliation;
+            option.textContent = affiliation;
+            select.appendChild(option);
+        });
+    }
+
+    function countCoOccurrences(articles) {
+        let counts = {};
+        let affiliationsSet = new Set();
+
+        articles.forEach(article => {
+            if (article.Affiliations) {
+                const Affiliations = article.Affiliations.split(';');
+                Affiliations.forEach(affiliation => affiliationsSet.add(affiliation.trim()));
+                Affiliations.forEach((AffiliationA, indexA) => {
+                    Affiliations.forEach((AffiliationB, indexB) => {
+                        if (indexA < indexB) {
+                            if (!counts[AffiliationA]) counts[AffiliationA] = {};
+                            if (!counts[AffiliationA][AffiliationB]) counts[AffiliationA][AffiliationB] = 0;
+                            counts[AffiliationA][AffiliationB]++;
+                        }
+                    });
+                });
+            }
+        });
+
+        allAffiliations = Array.from(affiliationsSet);
+
+        let localHeatmapData = [];
+        for (let AffiliationA in counts) {
+            for (let AffiliationB in counts[AffiliationA]) {
+                localHeatmapData.push({
+                    x: AffiliationA,
+                    y: AffiliationB,
+                    value: counts[AffiliationA][AffiliationB]
+                });
+            }
+        }
+        window.currentCounts = counts;
+        return localHeatmapData;
+    }
+
+    function updateHeatmap() {
+        const counts = window.currentCounts;
+        const selectedAffiliation = document.getElementById('affiliationSelect').value;
+        const topX = parseInt(document.getElementById('topXInput').value, 10);
+
+        let topAffiliations = Object.entries(counts[selectedAffiliation] || {})
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, topX)
+            .map(entry => entry[0]);
+
+        if (!topAffiliations.includes(selectedAffiliation)) {
+            topAffiliations.push(selectedAffiliation);
+        }
+
+        let filteredData = heatmapData.filter(d =>
+            topAffiliations.includes(d.x) && topAffiliations.includes(d.y)
+        );
+
+        createHeatmap(filteredData);
+    }
+
+    function createHeatmap(heatmapData) {
+
+        d3.select("#heatmap").selectAll("*").remove();
+
+        const width = 800;
+        const height = 800;
+        const margin = { top: 60, right: 20, bottom: 400, left: 400 };
+
+        const svg = d3.select("#heatmap").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        const Affiliations = Array.from(new Set(heatmapData.map(d => d.x).concat(heatmapData.map(d => d.y))));
+
+        const xScale = d3.scaleBand()
+            .range([0, width - margin.left - margin.right])
+            .domain(Affiliations)
+            .padding(0.01);
+        const yScale = d3.scaleBand()
+            .range([0, height - margin.top - margin.bottom])
+            .domain(Affiliations)
+            .padding(0.01);
+
+        const maxValue = d3.max(heatmapData, d => d.value);
+        const minValue = d3.min(heatmapData, d => d.value);
+        const colorScale = d3.scaleSequential()
+            .interpolator(d3.interpolateViridis)
+            .domain([minValue, maxValue]);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + (height - margin.top - margin.bottom) + ")")
+            .call(d3.axisBottom(xScale))
+            .selectAll("text")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "end");
+
+        svg.append("g")
+            .call(d3.axisLeft(yScale));
+
+        svg.selectAll()
+            .data(heatmapData, function(d) { return d.x + ':' + d.y; })
+            .enter()
+            .append("rect")
+            .attr("x", function(d) { return xScale(d.x); })
+            .attr("y", function(d) { return yScale(d.y); })
+            .attr("width", xScale.bandwidth())
+            .attr("height", yScale.bandwidth())
+            .style("fill", function(d) { return colorScale(d.value); });
+    }
+
+    //linechart
+    function handleFileSelectLineChart(event) {
+        const file = event.target.files[0];
+        Papa.parse(file, {
+            header: true,
+            dynamicTyping: true,
+            complete: function(results) {
+                const data = results.data;
+                createLineChart(data);
+            }
+        });
+    }
+
+    function createLineChart(data) {
+        const labels = data.map(row => row.YEAR);
+        const anthropologyData = data.map(row => row.Anthropology);
+        const archeologyData = data.map(row => row.Archaeology);
+        const sociologyData = data.map(row => row.Sociology);
+        const psychologyData = data.map(row => row.Psychology);
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+        if (chart) {
+            chart.destroy();
+        }
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Anthropology',
+                        data: anthropologyData,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    },
+                    {
+                        label: 'Archaeology',
+                        data: archeologyData,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    },
+                    {
+                        label: 'Sociology',
+                        data: sociologyData,
+                        borderColor: 'rgb(255, 206, 86)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                    },
+                    {
+                        label: 'Psychology',
+                        data: psychologyData,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    },
+                ]
+            },
+            options: {
+
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChartVisibility() {
+        const checkboxes = document.querySelectorAll('.lineCheckbox');
+        const selectedValues = Array.from(checkboxes).filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+
+        chart.data.datasets.forEach(dataset => {
+            if (selectedValues.includes(dataset.label) || selectedValues.includes('all')) {
+                dataset.hidden = false;
+            } else {
+                dataset.hidden = true;
+            }
+        });
+
+        chart.update();
+    }
+
+    // Word Cloud
+    function handleFileSelectWordCloud(event) {
+        const fileInput = event.target;
+        const file = fileInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const csvContent = e.target.result;
+                generateWordCloud(csvContent);
+            };
+
+            reader.readAsText(file);
+        }
+    }
+
+    function generateWordCloud(csvContent) {
+        const words = parseCSVContent(csvContent);
+
+        // Sort words by frequency in descending order
+        words.sort((a, b) => b.size - a.size);
+
+        // Take the top 20 words
+        const topWords = words.slice(0, 20);
+
+        const layout = d3.layout.cloud()
+            .size([800, 600])
+            .words(topWords)
+            .padding(20)
+            .rotate(function (){ return Math.random() < 0.5 ? 0:90 }) // Rotate randomly between 0 and 90 degrees
+            .fontSize(d => d.size*5) // Adjust font size scaling
+            .on("end", draw);
+
+        layout.start();
+
+        function draw(words) {
+            const colors = ["steelblue", "green", "red", "purple", "orange", "brown", "teal", "gray", "navy", "olive"];
+            d3.select("#wordcloud").html('');
+            d3.select("#wordcloud")
+                .append("svg")
+                .attr("width", layout.size()[0])
+                .attr("height", layout.size()[1])
+
+                .append("g")
+                .attr("transform", `translate(${layout.size()[0] / 2},${layout.size()[1] / 2})`)
+                .selectAll("text")
+                .data(words)
+                .enter().append("text")
+                .style("font-size", d => `${d.size}px`)
+                .style("fill", (d, i) => colors[i % colors.length])
+                .attr("text-anchor", "middle")
+                .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+                .text(d => d.text)
+                .style("pointer-events", "none") // Prevent interaction with the words
+            ;
+
+        }
+    }
+
+    function parseCSVContent(content) {
+        const rows = content.split('\n');
+
+        // Extract words and their frequencies from the second column
+        const words = rows.map(row => {
+            const columns = row.split(',');
+            return {
+                text: columns[0],  // Assuming words are in the first column
+                size: parseInt(columns[1], 10) || 0  // Assuming frequencies are in the second column
+            };
+        });
+
+        return words;
+    }
+
+</script>
+
+</body>
+</html>
